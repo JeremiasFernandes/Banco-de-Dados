@@ -29,7 +29,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
+# OPERAÇÕES COM USUÁRIO --------------------------------------------------
 @app.get("/users/{user_username}/{user_password}")
 def read_user(
     user_username: str, user_password: str, db: _orm.Session = _fastapi.Depends(_services.get_db)
@@ -65,7 +65,7 @@ async def create_user(
 
 
 
-
+# OPERAÇÕES COM GRAFO ------------------------------------------------------------------------------------
 @app.post("/cadastro/grafo/")
 async def create_graph(file: UploadFile, user_id: int = Form(...), db: _orm.Session = _fastapi.Depends(_services.get_db)):
     file_read = await file.read()
@@ -92,19 +92,6 @@ async def create_graph(file: UploadFile, user_id: int = Form(...), db: _orm.Sess
           raise _fastapi.HTTPException(
             status_code=406, detail=" Em sua coluna de pesos ha valores que nao são inteiros corrija para realizar o cadastro"
             ) 
-
-
-    
-@app.get("/lista/grafo/{id_grafo}")
-async def lista_grafo(id_grafo: int, db: _orm.Session = _fastapi.Depends(_services.get_db)):
-    list_nodes = _services.get_nodes(db=db, id_grafo=id_grafo)
-    return list_nodes
-
-
-
-
-
-
 
 
 @app.get("/lista/grafos/{user_id}")
@@ -138,6 +125,8 @@ async def lista_grafo(user_id: int, db: _orm.Session = _fastapi.Depends(_service
         })
     return {"graphTimeLine": graphTimeLine}
 
+
+
 @app.get("/excluir/grafo/{id_grafo}")
 async def excluir_grafo(id_grafo: int, db: _orm.Session = _fastapi.Depends(_services.get_db)):
     grafo = _services.get_graph(db, id_grafo)
@@ -150,7 +139,11 @@ async def excluir_grafo(id_grafo: int, db: _orm.Session = _fastapi.Depends(_serv
     raise _fastapi.HTTPException(
             status_code=404, detail="Grafo inexistente!"
             )
-    
+
+# ----------------------------------------------------------------------------------------------------------
+
+
+# OPERAÇÕES COM NÓS ---------------------------------------------------------------------------------------------------------------------    
 @app.post("/criar/no/")
 #async def create_node(node: _schemas.NodeCreate, graph_id: int = Form(...), db: _orm.Session = _fastapi.Depends(_services.get_db)):
 async def create_node(nome_no: str, graph_id: int = Form(...), db: _orm.Session = _fastapi.Depends(_services.get_db)):
@@ -161,12 +154,9 @@ async def create_node(nome_no: str, graph_id: int = Form(...), db: _orm.Session 
             status_code= 404, detail="Grafo não encontrado"
         )       
     
-    #db_node = _services.get_node_by_name(db=db, node_name=node.nome_no, graph_id=grafo.id) 
     db_node = _services.get_node_by_name(db=db, node_name=nome_no, graph_id=grafo.id)   
-    #print(db_node)  
     if (db_node is None):  
         no = {
-            #"nome_no": node.nome_no,
             "nome_no": nome_no,
             "grafo_id": grafo.id
         }
@@ -186,8 +176,7 @@ async def delete_node(node_id: int = Form(...), db: _orm.Session = _fastapi.Depe
             status_code= 404, detail="Nó não encontrado. Id passado não corresponde a nenhum nó salvo"
         )
     else:
-        #aqui entra o método para deletar o nó  
-        #_services.delete_node(db=db, node=node)
+
         grafo = _services.get_graph(db, node.grafo_id)
         _services.delete_node(db=db, node_id=node_id, grafo=grafo)
         list_edges_with_node = _services.get_edges_by_node(db, node_id=node_id)
@@ -208,13 +197,27 @@ async def update_node(nome_no: str = Form(...), node_id: int = Form(...), db: _o
             status_code= 404, detail="Nó não encontrado. Id passado não corresponde a nenhum nó salvo"
         )
     else:
-        #aqui entra o método para editar o nó
         _services.update_node (db=db, node_id=node_id, nome_no=nome_no)
         raise _fastapi.HTTPException(
             status_code= 200, detail="Nó editado com sucesso!"
         )
 
 
+@app.get("/lista/nos/{id_grafo}")
+async def lista_grafo(id_grafo: int, db: _orm.Session = _fastapi.Depends(_services.get_db)):
+    list_nodes = _services.get_nodes(db=db, id_grafo=id_grafo)
+    nodes_list = []
+    for node in list_nodes:
+        nodes_list.append({
+            "id": node.id,
+            "label": node.nome_no
+        })
+    return nodes_list
+
+# -------------------------------------------------------------------------------------------------------
+
+
+# OPERAÇÕES COM ARESTAS -------------------------------------------------------------------------------------------------------------------------
 # Criar aresta
 @app.post("/criar/aresta/")
 async def create_edge(no1_id: int,no2_id:str,peso:str, graph_id: int = Form(...), db: _orm.Session = _fastapi.Depends(_services.get_db)):
@@ -263,6 +266,23 @@ async def update_edge(peso: str, edge_id: int = Form(...), db: _orm.Session = _f
         )
     else:
         _services.update_edge (db=db, edge_id=edge_id, peso=peso)
+
+
+
+# Listar Arestas
+@app.post("/lista/aresta/{id_grafo}")
+async def lista_aresta(id_grafo: int, db: _orm.Session = _fastapi.Depends(_services.get_db)):
+    list_edges = _services.get_edges(db=db, grafo_id=id_grafo)
+    edge_list = []
+    for edge in list_edges:
+        edge_list.append({
+            "id": edge.id,
+            "Source": edge.source_id,
+            "Target": edge.target_id,
+            "peso": str(edge.peso)
+        })
+    return {"Edges": edge_list}
+
 
 
 # @app.get("/users/", response_model=List[_schemas.User])
