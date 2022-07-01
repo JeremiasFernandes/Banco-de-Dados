@@ -187,7 +187,6 @@ def create_edge(db: _orm.Session, edge: _schemas.EdgeCreate, graph: _schemas.Gra
 
 
 
-
 def delete_edge(db: _orm.Session, edge_id: int, grafo):
     grafo.NumeroDeArestas-=1
     db_edge = get_edge(db,edge_id)

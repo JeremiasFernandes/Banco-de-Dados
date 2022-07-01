@@ -64,7 +64,6 @@ async def create_user(
 
 
 
-
 # OPERAÇÕES COM GRAFO ------------------------------------------------------------------------------------
 @app.post("/cadastro/grafo/")
 async def create_graph(file: UploadFile, user_id: int = Form(...), db: _orm.Session = _fastapi.Depends(_services.get_db)):
