@@ -68,11 +68,10 @@ async def create_user(
 @app.post("/cadastro/grafo/")
 async def create_graph(file: UploadFile, user_id: int = Form(...), db: _orm.Session = _fastapi.Depends(_services.get_db)):
     file_read = await file.read()
-    nome_arquivo = file.filename
+    nome_arquivo = file.filename.split(".")
     texto = file_read.decode("utf-8")
     buffer = io.StringIO(texto)
     df = pd.read_csv(filepath_or_buffer = buffer, header=None)
-
 
     check_nan_in_df = df.isnull().values.any()
 
@@ -83,7 +82,7 @@ async def create_graph(file: UploadFile, user_id: int = Form(...), db: _orm.Sess
             )
     if (df.iloc[:, 2].dtypes <= np.integer):
           status_code=200
-          if(_services.cadastroGrafoCompleto(df, db, nome_arquivo, user_id)):
+          if(_services.cadastroGrafoCompleto(df, db, nome_arquivo[0], user_id)):
               raise _fastapi.HTTPException(
             status_code=200, detail="Grafo cadastrado com sucesso!"
             ) 
@@ -269,7 +268,7 @@ async def update_edge(peso: str, edge_id: int = Form(...), db: _orm.Session = _f
 
 
 # Listar Arestas
-@app.post("/lista/aresta/{id_grafo}")
+@app.get("/lista/aresta/{id_grafo}")
 async def lista_aresta(id_grafo: int, db: _orm.Session = _fastapi.Depends(_services.get_db)):
     list_edges = _services.get_edges(db=db, grafo_id=id_grafo)
     edge_list = []
