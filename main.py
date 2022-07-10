@@ -186,7 +186,7 @@ async def delete_node(node_id: int, db: _orm.Session = _fastapi.Depends(_service
         )
         
 #SPRINT3: Editar nó
-@app.get("/editar/no/{node_id}")
+@app.get("/editar/no/{node_id}/{nome_no}")
 async def update_node(nome_no: str, node_id: int, db: _orm.Session = _fastapi.Depends(_services.get_db)):
     
     node = _services.get_node(db=db, node_id=node_id)
