@@ -260,7 +260,7 @@ async def delete_edge(edge_id: int, db: _orm.Session = _fastapi.Depends(_service
      
         
 # Editar aresta
-@app.get("/editar/aresta/{edge_id}")
+@app.get("/editar/aresta/{edge_id}/{peso}")
 async def update_edge(peso: str, edge_id: int, db: _orm.Session = _fastapi.Depends(_services.get_db)):
     
     edge = _services.get_edge_id(db=db, edge_id=edge_id)
