@@ -218,7 +218,7 @@ async def lista_grafo(id_grafo: int, db: _orm.Session = _fastapi.Depends(_servic
 # OPERAÇÕES COM ARESTAS -------------------------------------------------------------------------------------------------------------------------
 # Criar aresta
 @app.get("/criar/aresta/{no1_id}/{no2_id}/{peso}/{graph_id}")
-async def create_edge(no1_id: int,no2_id:str,peso:str, graph_id: int, db: _orm.Session = _fastapi.Depends(_services.get_db)):
+async def create_edge(no1_id: int,no2_id:int,peso:str, graph_id: int, db: _orm.Session = _fastapi.Depends(_services.get_db)):
       
     grafo = _services.get_graph(db=db, graph_id=graph_id)
     if (grafo is None):
@@ -226,15 +226,21 @@ async def create_edge(no1_id: int,no2_id:str,peso:str, graph_id: int, db: _orm.S
             status_code= 404, detail="Grafo não encontrado"
         )        
 
-    db_edge = _services.get_new_edge(db=db, edge_target=no1_id, edge_source=no2_id, edge_peso= peso, graph_id=grafo.id)
-    if (db_edge is None):  
-        aresta = {
-            "target_id": no1_id,
-            "source_id": no2_id,
-            "peso": peso,
-            "grafo_id": grafo.id
-            }
-        _services.create_edge(db=db, edge=aresta, graph=grafo)
+    db_edges = _services.get_edges(db=db, grafo_id=grafo.id)
+    for edge in db_edges:
+        if edge.source_id == no2_id and edge.target_id == no1_id:
+            raise _fastapi.HTTPException(
+            status_code= 404, detail="Aresta já existe!"
+        )   
+    
+ 
+    aresta = {
+        "target_id": no1_id,
+        "source_id": no2_id,
+        "peso": peso,
+        "grafo_id": grafo.id
+        }
+    return _services.create_edge(db=db, edge=aresta, graph=grafo)
     
      
                       
