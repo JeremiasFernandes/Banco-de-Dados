@@ -142,9 +142,9 @@ async def excluir_grafo(id_grafo: int, db: _orm.Session = _fastapi.Depends(_serv
 
 
 # OPERAÇÕES COM NÓS ---------------------------------------------------------------------------------------------------------------------    
-@app.post("/criar/no/")
+@app.get("/criar/no/{nome_no}/{graph_id}")
 #async def create_node(node: _schemas.NodeCreate, graph_id: int = Form(...), db: _orm.Session = _fastapi.Depends(_services.get_db)):
-async def create_node(nome_no: str, graph_id: int = Form(...), db: _orm.Session = _fastapi.Depends(_services.get_db)):
+async def create_node(nome_no: str, graph_id: int, db: _orm.Session = _fastapi.Depends(_services.get_db)):
       
     grafo = _services.get_graph(db=db, graph_id=graph_id)
     if (grafo is None): #OU if(grafo is None) ????
@@ -165,8 +165,8 @@ async def create_node(nome_no: str, graph_id: int = Form(...), db: _orm.Session 
             
                       
 #SPRINT3: Deletar nó
-@app.post("/deletar/no/")
-async def delete_node(node_id: int = Form(...), db: _orm.Session = _fastapi.Depends(_services.get_db)):
+@app.get("/deletar/no/{node_id}")
+async def delete_node(node_id: int, db: _orm.Session = _fastapi.Depends(_services.get_db)):
     
     node = _services.get_node(db=db, node_id=node_id)
     if (node is None):
@@ -186,8 +186,8 @@ async def delete_node(node_id: int = Form(...), db: _orm.Session = _fastapi.Depe
         )
         
 #SPRINT3: Editar nó
-@app.post("/editar/no/")
-async def update_node(nome_no: str = Form(...), node_id: int = Form(...), db: _orm.Session = _fastapi.Depends(_services.get_db)):
+@app.get("/editar/no/{node_id}")
+async def update_node(nome_no: str, node_id: int, db: _orm.Session = _fastapi.Depends(_services.get_db)):
     
     node = _services.get_node(db=db, node_id=node_id)
     if (node is None):
@@ -217,8 +217,8 @@ async def lista_grafo(id_grafo: int, db: _orm.Session = _fastapi.Depends(_servic
 
 # OPERAÇÕES COM ARESTAS -------------------------------------------------------------------------------------------------------------------------
 # Criar aresta
-@app.post("/criar/aresta/")
-async def create_edge(no1_id: int,no2_id:str,peso:str, graph_id: int = Form(...), db: _orm.Session = _fastapi.Depends(_services.get_db)):
+@app.get("/criar/aresta/{no1_id}/{no2_id}/{peso}/{graph_id}")
+async def create_edge(no1_id: int,no2_id:str,peso:str, graph_id: int, db: _orm.Session = _fastapi.Depends(_services.get_db)):
       
     grafo = _services.get_graph(db=db, graph_id=graph_id)
     if (grafo is None):
@@ -239,10 +239,10 @@ async def create_edge(no1_id: int,no2_id:str,peso:str, graph_id: int = Form(...)
      
                       
 #Deletar aresta
-@app.post("/deletar/aresta/")
-async def delete_edge(edge_id: int = Form(...), db: _orm.Session = _fastapi.Depends(_services.get_db)):
+@app.get("/deletar/aresta/{edge_id}")
+async def delete_edge(edge_id: int, db: _orm.Session = _fastapi.Depends(_services.get_db)):
     
-    edge = _services.get_edge_id(db=db, edge_id=edge_id)
+    edge = _services.get_edge(db=db, edge_id=edge_id)
     if (edge is None):
         raise _fastapi.HTTPException(
             status_code= 404, detail="Aresta não encontrada."
@@ -254,8 +254,8 @@ async def delete_edge(edge_id: int = Form(...), db: _orm.Session = _fastapi.Depe
      
         
 # Editar aresta
-@app.post("/editar/aresta/")
-async def update_edge(peso: str, edge_id: int = Form(...), db: _orm.Session = _fastapi.Depends(_services.get_db)):
+@app.get("/editar/aresta/{edge_id}")
+async def update_edge(peso: str, edge_id: int, db: _orm.Session = _fastapi.Depends(_services.get_db)):
     
     edge = _services.get_edge_id(db=db, edge_id=edge_id)
     if (edge is None):
@@ -273,13 +273,15 @@ async def lista_aresta(id_grafo: int, db: _orm.Session = _fastapi.Depends(_servi
     list_edges = _services.get_edges(db=db, grafo_id=id_grafo)
     edge_list = []
     for edge in list_edges:
+        source = _services.get_node(db, edge.source_id)
+        target = _services.get_node(db, edge.target_id)
         edge_list.append({
             "id": edge.id,
-            "Source": edge.source_id,
-            "Target": edge.target_id,
+            "Source": source.nome_no,
+            "Target": target.nome_no,
             "peso": str(edge.peso)
         })
-    return {"Edges": edge_list}
+    return edge_list
 
 
 
