@@ -279,6 +279,8 @@ async def lista_aresta(id_grafo: int, db: _orm.Session = _fastapi.Depends(_servi
             "id": edge.id,
             "Source": source.nome_no,
             "Target": target.nome_no,
+            "Source_id": source.id,
+            "Target_id":  target.id,
             "peso": str(edge.peso)
         })
     return edge_list
